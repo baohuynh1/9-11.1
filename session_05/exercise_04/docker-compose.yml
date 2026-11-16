@@ -1,0 +1,99 @@
+# QuickBite - PostgreSQL + 4 backend services (Hibernate ddl-auto=update)
+# Chuẩn bị: cp .env.example .env  (điền mật khẩu) và build JAR trước: ./build-jars.sh
+
+x-java-env: &java-env
+  JAVA_TOOL_OPTIONS: "-Xmx160m -Xss512k -XX:MaxMetaspaceSize=128m -XX:+UseSerialGC"
+
+x-backend: &backend
+  mem_limit: 384m
+  restart: unless-stopped
+  depends_on:
+    quickbite-db:
+      condition: service_healthy
+  networks:
+    - quickbite-net
+
+services:
+  quickbite-db:
+    image: postgres:16-alpine
+    container_name: quickbite-db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${USER_DB_NAME}
+    command: ["postgres", "-c", "shared_buffers=32MB", "-c", "max_connections=40"]
+    volumes:
+      - quickbite-pgdata:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${USER_DB_NAME}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    mem_limit: 256m
+    restart: unless-stopped
+    networks:
+      - quickbite-net
+
+  quickbite-user:
+    <<: *backend
+    build: ${BUILD_ROOT}/user-service
+    image: quickbite-user-service:latest
+    container_name: quickbite-user
+    ports:
+      - "${USER_SERVER_PORT}:${USER_SERVER_PORT}"
+    environment:
+      <<: *java-env
+      SERVER_PORT: ${USER_SERVER_PORT}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${USER_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${USER_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD}
+
+  quickbite-restaurant:
+    <<: *backend
+    build: ${BUILD_ROOT}/restaurant-service
+    image: quickbite-restaurant-service:latest
+    container_name: quickbite-restaurant
+    ports:
+      - "${RESTAURANT_SERVER_PORT}:${RESTAURANT_SERVER_PORT}"
+    environment:
+      <<: *java-env
+      SERVER_PORT: ${RESTAURANT_SERVER_PORT}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${RESTAURANT_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${RESTAURANT_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${RESTAURANT_DB_PASSWORD}
+
+  quickbite-order:
+    <<: *backend
+    build: ${BUILD_ROOT}/order-service
+    image: quickbite-order-service:latest
+    container_name: quickbite-order
+    ports:
+      - "${ORDER_SERVER_PORT}:${ORDER_SERVER_PORT}"
+    environment:
+      <<: *java-env
+      SERVER_PORT: ${ORDER_SERVER_PORT}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${ORDER_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${ORDER_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${ORDER_DB_PASSWORD}
+
+  quickbite-notification:
+    <<: *backend
+    build: ${BUILD_ROOT}/notification-service
+    image: quickbite-notification-service:latest
+    container_name: quickbite-notification
+    ports:
+      - "${NOTIFICATION_SERVER_PORT}:${NOTIFICATION_SERVER_PORT}"
+    environment:
+      <<: *java-env
+      SERVER_PORT: ${NOTIFICATION_SERVER_PORT}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${NOTIFICATION_DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${NOTIFICATION_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${NOTIFICATION_DB_PASSWORD}
+
+volumes:
+  quickbite-pgdata:
+
+networks:
+  quickbite-net:
+    external: true
