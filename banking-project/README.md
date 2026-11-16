@@ -8,7 +8,7 @@ docker compose logs -f account-service
 
 | Service | Image | Port |
 |---|---|---|
-| core-db | postgres:16-alpine | 5432:5432 (DB `banking_db`, user/pass `postgres`/`postgres`) |
+| core-db | postgres:16-alpine | không mở ra host (chỉ trong `banking-network`), dữ liệu lưu ở volume `pg-data` |
 | account-service | build từ `Dockerfile` | 8080:8080 |
 
 ## API
@@ -36,4 +36,4 @@ Body tạo tài khoản:
 ```bash
 docker exec -it core-db psql -U postgres -d banking_db -c "SELECT * FROM accounts;"
 ```
-DBeaver: PostgreSQL – host `localhost`, port `5432`, database `banking_db`, user `postgres`, password `postgres`.
+Port 5432 không còn mở ra host, nên truy vấn DB qua `docker exec` như trên.

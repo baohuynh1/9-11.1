@@ -6,16 +6,17 @@ services:
       POSTGRES_DB: banking_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
+    # KHÔNG map port 5432 ra host: chỉ các service trong banking-network truy cập được DB
     volumes:
-      - core-db-data:/var/lib/postgresql/data
+      - pg-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d banking_db"]
       interval: 5s
       timeout: 3s
       retries: 10
     restart: unless-stopped
+    networks:
+      - banking-network
 
   account-service:
     build: .
@@ -32,6 +33,14 @@ services:
       core-db:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      - banking-network
+
+networks:
+  banking-network:
+    name: banking-network
+    driver: bridge
 
 volumes:
-  core-db-data:
+  pg-data:
+    name: pg-data
