@@ -3,3 +3,6 @@ build
 .idea
 *.iml
 .git
+transaction-service
+screenshots
+postman

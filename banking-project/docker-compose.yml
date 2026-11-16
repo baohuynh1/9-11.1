@@ -36,6 +36,28 @@ services:
     networks:
       - banking-network
 
+  transaction-service:
+    build: ./transaction-service
+    image: transaction-service:latest
+    container_name: transaction-service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://core-db:5432/banking_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      # Gọi account-service qua tên container trong banking-network
+      ACCOUNT_SERVICE_URL: http://account-service:8080
+      JAVA_TOOL_OPTIONS: "-Xmx192m -XX:+UseSerialGC"
+    ports:
+      - "8081:8081"
+    depends_on:
+      core-db:
+        condition: service_healthy
+      account-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - banking-network
+
 networks:
   banking-network:
     name: banking-network

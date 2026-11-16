@@ -37,3 +37,17 @@ Body tạo tài khoản:
 docker exec -it core-db psql -U postgres -d banking_db -c "SELECT * FROM accounts;"
 ```
 Port 5432 không còn mở ra host, nên truy vấn DB qua `docker exec` như trên.
+
+## transaction-service (port 8081)
+Gọi nội bộ `http://account-service:8080` (tên container trong `banking-network`) để kiểm tra tài khoản trước khi xử lý chuyển tiền.
+
+| Method | URL | Mô tả |
+|---|---|---|
+| POST | `/api/transactions/transfer` | Chuyển tiền (kiểm tra TK nguồn, đích, số dư qua account-service) |
+| GET | `/api/transactions` | Danh sách giao dịch |
+| GET | `/api/transactions/{id}` | Chi tiết giao dịch |
+
+```json
+{ "fromAccountNumber": "9704xxxxxxxx", "toAccountNumber": "9704yyyyyyyy", "amount": 100000, "description": "Chuyen tien" }
+```
+Code gọi liên service: `transaction-service/src/main/java/com/bank/transaction/client/AccountClient.java`.
