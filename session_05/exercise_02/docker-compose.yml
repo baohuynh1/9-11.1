@@ -1,0 +1,66 @@
+# QuickBite - 4 backend services
+# Yêu cầu: đã build 4 image ở exercise_01 và đã có mạng ngoài quickbite-net
+#   (nếu chưa có: docker network create quickbite-net)
+
+x-common-env: &common-env
+  SPRING_DATASOURCE_USERNAME: quickbite
+  SPRING_DATASOURCE_PASSWORD: quickbite123
+  # Giới hạn heap để chạy được trên máy/VPS ít RAM
+  JAVA_TOOL_OPTIONS: "-Xmx128m -Xss512k -XX:+UseSerialGC"
+
+services:
+  quickbite-user:
+    image: quickbite-user-service:latest
+    container_name: quickbite-user
+    ports:
+      - "8081:8081"
+    environment:
+      <<: *common-env
+      SPRING_DATASOURCE_URL: jdbc:mysql://quickbite-db:3306/user_db
+    mem_limit: 256m
+    restart: unless-stopped
+    networks:
+      - quickbite-net
+
+  quickbite-restaurant:
+    image: quickbite-restaurant-service:latest
+    container_name: quickbite-restaurant
+    ports:
+      - "8082:8082"
+    environment:
+      <<: *common-env
+      SPRING_DATASOURCE_URL: jdbc:mysql://quickbite-db:3306/restaurant_db
+    mem_limit: 256m
+    restart: unless-stopped
+    networks:
+      - quickbite-net
+
+  quickbite-order:
+    image: quickbite-order-service:latest
+    container_name: quickbite-order
+    ports:
+      - "8083:8083"
+    environment:
+      <<: *common-env
+      SPRING_DATASOURCE_URL: jdbc:mysql://quickbite-db:3306/order_db
+    mem_limit: 256m
+    restart: unless-stopped
+    networks:
+      - quickbite-net
+
+  quickbite-notification:
+    image: quickbite-notification-service:latest
+    container_name: quickbite-notification
+    ports:
+      - "8084:8084"
+    environment:
+      <<: *common-env
+      SPRING_DATASOURCE_URL: jdbc:mysql://quickbite-db:3306/notification_db
+    mem_limit: 256m
+    restart: unless-stopped
+    networks:
+      - quickbite-net
+
+networks:
+  quickbite-net:
+    external: true
