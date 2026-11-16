@@ -17,10 +17,10 @@ services:
       retries: 10
     restart: unless-stopped
 
-  banking-app:
+  account-service:
     build: .
-    image: banking-app:latest
-    container_name: banking-app
+    image: account-service:latest
+    container_name: account-service
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://core-db:5432/banking_db
       SPRING_DATASOURCE_USERNAME: postgres

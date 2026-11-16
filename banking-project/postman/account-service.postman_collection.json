@@ -1,0 +1,33 @@
+{
+  "info": {
+    "name": "account-service",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [{ "key": "baseUrl", "value": "http://localhost:8080" }],
+  "item": [
+    {
+      "name": "Create account",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/api/accounts",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"ownerName\": \"Nguyen Van A\",\n  \"email\": \"nguyenvana@example.com\",\n  \"phone\": \"0901234567\",\n  \"accountType\": \"SAVINGS\",\n  \"initialDeposit\": 5000000,\n  \"currency\": \"VND\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Get all accounts",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/accounts" }
+    },
+    {
+      "name": "Get account by id",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/accounts/1" }
+    },
+    {
+      "name": "Get account by number",
+      "request": { "method": "GET", "url": "{{baseUrl}}/api/accounts/number/970400000000" }
+    }
+  ]
+}
